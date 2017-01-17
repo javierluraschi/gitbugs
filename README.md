@@ -1,7 +1,7 @@
 GitBugs
 =======
 
-**GitBugs** is a library to help teams understand their GitHub bugs: [http://www.gitbugs.com](http://www.gitbugs.com)
+**GitBugs** is a library to help teams understand their GitHub bugs: [https://s3.amazonaws.com/gitbugs/index.html](https://s3.amazonaws.com/gitbugs/index.html)
 
 Use GitBugs.download(user, repo, status) to download bugs for a given repositiory. "status" can take the values "open" or "close". Try the following example to get started:
 
