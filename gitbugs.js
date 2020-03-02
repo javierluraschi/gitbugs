@@ -159,7 +159,7 @@ var GitBugs = (function (my) {
             line += ",";
         }
 
-        return line;
+        return line.substring(0, line.length - 1);
     }
 
     var processDataObject = function (fields, object) {
