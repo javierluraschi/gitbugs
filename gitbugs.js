@@ -95,7 +95,6 @@ var GitBugs = (function (my) {
             "gravatar_id": true,
             "url": true
         },
-        "milestone": true,
         "comments": true,
         "created_at": true,
         "updated_at": true,
