@@ -22,7 +22,7 @@ var UTIL = (function (my) {
     };
 
     my.saveFile = function (type, data, fileName) {
-        var uri = 'data:' + type + ';charset=utf-8,' + data;
+        var uri = 'data:' + type + ';charset=utf-8,' + encodeURIComponent(data);
 
         var downloadLink = document.createElement("a");
         downloadLink.href = uri;
@@ -201,7 +201,7 @@ var GitBugs = (function (my) {
             var line = processDataObject(fields, topObject);
 
             line = line.substring(0, line.length - 1);
-            str += line + "%0A";
+            str += line + "\n";
         }
 
         return str;
@@ -232,7 +232,7 @@ var GitBugs = (function (my) {
             }
 
             UTIL.parallel(allActions, function (results) {
-                var csvData = processHeader(csvFields, "") + "%0A";
+                var csvData = processHeader(csvFields, "") + "\n";
                 for (var result in results) {
                     csvData += processData(csvFields, results[result]);
                 }
