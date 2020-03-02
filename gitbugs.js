@@ -210,16 +210,25 @@ var GitBugs = (function (my) {
     my.download = function (user, repo, state) {
         var url = "https://api.github.com/repos/" + user + "/" + repo + "/issues?state=" + state;
         UTIL.requestData(url, function (response, headers) {
-            var totalPages = /page=([0-9]+)>; rel=\"last/g.exec(headers.link)[1];
-
             var allActions = [];
-            for (var idxPage = 1; idxPage <= totalPages; idxPage++) {
+            if (headers.link !== undefined) {
+                var totalPages = /page=([0-9]+)>; rel=\"last/g.exec(headers.link)[1];
+
+                for (var idxPage = 1; idxPage <= totalPages; idxPage++) {
+                    allActions.push({
+                        action: function (completed, data) {
+                            UTIL.requestData(data, completed);
+                        },
+                        data: url + "&page=" + idxPage
+                    });
+                }
+            } else {
                 allActions.push({
                     action: function (completed, data) {
-                        UTIL.requestData(data, completed);
+                        completed(data)
                     },
-                    data: url + "&page=" + idxPage
-                });
+                    data: response
+                })
             }
 
             UTIL.parallel(allActions, function (results) {
