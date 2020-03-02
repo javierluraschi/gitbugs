@@ -145,21 +145,17 @@ var GitBugs = (function (my) {
             if (Array.isArray(fields[field])) {
                 for (var idxArray = 0; idxArray < 5; idxArray++) {
                     line += processHeader(fields[field][0], prefix + field + "_" + idxArray + "_");
-                    line = line.substring(0, line.length - 1);
                 }
             }
             else if (typeof (fields[field]) === "object") {
                 line += processHeader(fields[field], prefix + field + "_");
-                line = line.substring(0, line.length - 1);
             }
             else {
-                line += prefix + field;
+                line += prefix + field + ",";
             }
-
-            line += ",";
         }
 
-        return line.substring(0, line.length - 1);
+        return line;
     }
 
     var processDataObject = function (fields, object) {
@@ -172,22 +168,22 @@ var GitBugs = (function (my) {
                 for (var idxArray = 0; idxArray < 5; idxArray++) {
                     var arrayValue = !value || idxArray >= value.length ? null : value[idxArray];
                     line += processDataObject(fields[field][0], arrayValue);
-                    line = line.substring(0, line.length - 1);
                 }
             }
             else if (typeof (fields[field]) === "object") {
                 line += processDataObject(fields[field], value);
-                line = line.substring(0, line.length - 1);
             }
-            else if (object && object.hasOwnProperty(field)) {
-                if (typeof (value) === "string") {
-                    line += '"' + value.replace(/"/g, '"') + '"';
+            else {
+                if (object && object.hasOwnProperty(field)) {
+                    if (typeof (value) === "string") {
+                        line += '"' + value.replace(/"/g, '""') + '"';
+                    }
+                    else {
+                        line += value;
+                    }
                 }
-                else {
-                    line += value;
-                }
+                line += ",";
             }
-            line += ",";
         }
 
         return line;
@@ -232,7 +228,8 @@ var GitBugs = (function (my) {
             }
 
             UTIL.parallel(allActions, function (results) {
-                var csvData = processHeader(csvFields, "") + "\n";
+                var csvData = processHeader(csvFields, "");
+                csvData = csvData.substring(0, csvData.length - 1) + "\n";
                 for (var result in results) {
                     csvData += processData(csvFields, results[result]);
                 }
