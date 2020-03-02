@@ -135,6 +135,7 @@ var GitBugs = (function (my) {
                 "color": true
             }
         ],
+        "body": true,
     };
 
     var processHeader = function (fields, prefix) {
@@ -180,7 +181,7 @@ var GitBugs = (function (my) {
             }
             else if (object && object.hasOwnProperty(field)) {
                 if (typeof (value) === "string") {
-                    line += value.replace(/,/g, " ");
+                    line += '"' + value.replace(/"/g, '"') + '"';
                 }
                 else {
                     line += value;
