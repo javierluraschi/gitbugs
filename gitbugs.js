@@ -237,7 +237,7 @@ var GitBugs = (function (my) {
                     csvData += processData(csvFields, results[result]);
                 }
 
-                UTIL.saveFile('text/csv', csvData, "gitbugs.csv")
+                UTIL.saveFile('text/csv', csvData, repo + ".csv")
             });
         });
     }
