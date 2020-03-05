@@ -22,7 +22,7 @@ var UTIL = (function (my) {
     };
 
     my.saveFile = function (type, data, fileName) {
-        var uri = 'data:' + type + ';charset=utf-8,' + data;
+        var uri = 'data:' + type + ';charset=utf-8,' + encodeURIComponent(data);
 
         var downloadLink = document.createElement("a");
         downloadLink.href = uri;
@@ -95,7 +95,6 @@ var GitBugs = (function (my) {
             "gravatar_id": true,
             "url": true
         },
-        "milestone": true,
         "comments": true,
         "created_at": true,
         "updated_at": true,
@@ -136,6 +135,7 @@ var GitBugs = (function (my) {
                 "color": true
             }
         ],
+        "body": true,
     };
 
     var processHeader = function (fields, prefix) {
@@ -145,18 +145,14 @@ var GitBugs = (function (my) {
             if (Array.isArray(fields[field])) {
                 for (var idxArray = 0; idxArray < 5; idxArray++) {
                     line += processHeader(fields[field][0], prefix + field + "_" + idxArray + "_");
-                    line = line.substring(0, line.length - 1);
                 }
             }
             else if (typeof (fields[field]) === "object") {
                 line += processHeader(fields[field], prefix + field + "_");
-                line = line.substring(0, line.length - 1);
             }
             else {
-                line += prefix + field;
+                line += prefix + field + ",";
             }
-
-            line += ",";
         }
 
         return line;
@@ -172,22 +168,22 @@ var GitBugs = (function (my) {
                 for (var idxArray = 0; idxArray < 5; idxArray++) {
                     var arrayValue = !value || idxArray >= value.length ? null : value[idxArray];
                     line += processDataObject(fields[field][0], arrayValue);
-                    line = line.substring(0, line.length - 1);
                 }
             }
             else if (typeof (fields[field]) === "object") {
                 line += processDataObject(fields[field], value);
-                line = line.substring(0, line.length - 1);
             }
-            else if (object && object.hasOwnProperty(field)) {
-                if (typeof (value) === "string") {
-                    line += value.replace(/,/g, " ");
+            else {
+                if (object && object.hasOwnProperty(field)) {
+                    if (typeof (value) === "string") {
+                        line += '"' + value.replace(/"/g, '""') + '"';
+                    }
+                    else {
+                        line += value;
+                    }
                 }
-                else {
-                    line += value;
-                }
+                line += ",";
             }
-            line += ",";
         }
 
         return line;
@@ -201,7 +197,7 @@ var GitBugs = (function (my) {
             var line = processDataObject(fields, topObject);
 
             line = line.substring(0, line.length - 1);
-            str += line + "%0A";
+            str += line + "\n";
         }
 
         return str;
@@ -210,25 +206,35 @@ var GitBugs = (function (my) {
     my.download = function (user, repo, state) {
         var url = "https://api.github.com/repos/" + user + "/" + repo + "/issues?state=" + state;
         UTIL.requestData(url, function (response, headers) {
-            var totalPages = /page=([0-9]+)>; rel=\"last/g.exec(headers.link)[1];
-
             var allActions = [];
-            for (var idxPage = 1; idxPage <= totalPages; idxPage++) {
+            if (headers.link !== undefined) {
+                var totalPages = /page=([0-9]+)>; rel=\"last/g.exec(headers.link)[1];
+
+                for (var idxPage = 1; idxPage <= totalPages; idxPage++) {
+                    allActions.push({
+                        action: function (completed, data) {
+                            UTIL.requestData(data, completed);
+                        },
+                        data: url + "&page=" + idxPage
+                    });
+                }
+            } else {
                 allActions.push({
                     action: function (completed, data) {
-                        UTIL.requestData(data, completed);
+                        completed(data)
                     },
-                    data: url + "&page=" + idxPage
-                });
+                    data: response
+                })
             }
 
             UTIL.parallel(allActions, function (results) {
-                var csvData = processHeader(csvFields, "") + "%0A";
+                var csvData = processHeader(csvFields, "");
+                csvData = csvData.substring(0, csvData.length - 1) + "\n";
                 for (var result in results) {
                     csvData += processData(csvFields, results[result]);
                 }
 
-                UTIL.saveFile('text/csv', csvData, "gitbugs.csv")
+                UTIL.saveFile('text/csv', csvData, repo + ".csv")
             });
         });
     }
